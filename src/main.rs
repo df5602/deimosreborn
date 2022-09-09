@@ -6,7 +6,7 @@ use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
 
 use anyhow::{Context, Result};
-use sprite::Sprite;
+use sprite::{Sprite, SpriteDescription};
 
 use std::time::Duration;
 
@@ -46,6 +46,12 @@ fn main() -> Result<()> {
     let texture_creator = canvas.texture_creator();
 
     let player_sprite = Sprite::from_gif(
+        SpriteDescription {
+            number_of_frames: 7,
+            border_left: 3,
+            border_up: 3,
+            frame_dimensions: (53, 43),
+        },
         "assets/ Data/Paks/Game/im08/Player 1 Orange IC[pl1o].gif",
         "assets/ Data/Paks/Game/im08/Player 1 Orange IA[PL1O].gif",
         &texture_creator,
@@ -55,14 +61,25 @@ fn main() -> Result<()> {
     canvas.clear();
     canvas.present();
     let mut event_pump = sdl_context.event_pump().unwrap();
+
+    let frames = [0, 1, 2, 3, 2, 1, 0, 4, 5, 6, 5, 4];
+    let mut frame_count = 0;
+    let mut frame_idx = 0;
+
     'running: loop {
         canvas.clear();
 
         canvas
             .copy(
                 &player_sprite.texture(),
-                None,
-                sdl2::rect::Rect::new((SCREEN_WIDTH as i32 - (394 * 2)) / 2, 500, 394 * 2, 48 * 2),
+                /* FIXME: returning an option here might not be the best idea, since 'None' in this context means "copy the whole source texture" */
+                player_sprite.get_rect_of_frame(frames[frame_idx]),
+                sdl2::rect::Rect::new(
+                    (SCREEN_WIDTH as i32 - (player_sprite.frame_width() * 2) as i32) / 2,
+                    500,
+                    (player_sprite.frame_width() * 2) as u32,
+                    (player_sprite.frame_height() * 2) as u32,
+                ),
             )
             .unwrap();
         for event in event_pump.poll_iter() {
@@ -74,6 +91,14 @@ fn main() -> Result<()> {
                 } => break 'running,
                 _ => {}
             }
+        }
+
+        frame_count += 1;
+        frame_idx = frame_count / 6;
+
+        if frame_idx >= frames.len() {
+            frame_idx = 0;
+            frame_count = 0;
         }
 
         canvas.present();
