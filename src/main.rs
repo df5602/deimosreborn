@@ -1,12 +1,29 @@
 mod errors;
+
 mod sprite;
+
+mod component;
+mod resource;
+mod system;
 
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
-use sdl2::pixels::Color;
+
+use specs::{Builder, DispatcherBuilder, World, WorldExt};
 
 use anyhow::{Context, Result};
-use sprite::{Sprite, SpriteDescription};
+
+use component::{
+    player_animation::PlayerAnimationComponent, player_physics::PlayerPhysicsComponent,
+    position::PositionComponent, sprite::SpriteComponent,
+};
+use resource::player_input::PlayerInput;
+use system::{
+    player_animation::PlayerAnimationSystem, player_movement::PlayerMovementSystem,
+    render::RenderSystem,
+};
+
+use sprite::{Sprite, SpriteDescription, SpriteManager};
 
 use std::time::Duration;
 
@@ -15,12 +32,12 @@ const SCREEN_HEIGHT: u32 = 960;
 
 fn main() -> Result<()> {
     let sdl_context = sdl2::init()
-        .map_err(|e| errors::SdlError::InitError(e))
+        .map_err(errors::SdlError::InitError)
         .context("Failed to initialize SDL2")?;
 
     let video_subsystem = sdl_context
         .video()
-        .map_err(|e| errors::SdlError::InitError(e))
+        .map_err(errors::SdlError::InitError)
         .context("Failed to initialize video subsystem")?;
 
     /*let _image_context = sdl2::image::init(sdl2::image::InitFlag::empty())
@@ -38,7 +55,7 @@ fn main() -> Result<()> {
             )
         })?;
 
-    let mut canvas = window
+    let canvas = window
         .into_canvas()
         .build()
         .context("Failed to create canvas")?;
@@ -57,53 +74,75 @@ fn main() -> Result<()> {
         &texture_creator,
     )?;
 
-    canvas.set_draw_color(Color::RGB(0, 100, 200));
-    canvas.clear();
-    canvas.present();
+    let mut sprite_manager = SpriteManager::new();
+    let player_sprite_id = sprite_manager.insert(player_sprite);
+
+    let mut world = World::new();
+    world.insert(PlayerInput::default());
+    world.register::<PlayerAnimationComponent>();
+    world.register::<PlayerPhysicsComponent>();
+    world.register::<PositionComponent>();
+    world.register::<SpriteComponent>();
+
+    world
+        .create_entity()
+        .with(SpriteComponent {
+            sprite: player_sprite_id,
+        })
+        .with(PositionComponent {
+            x: (SCREEN_WIDTH / 2) as f32,
+            y: (SCREEN_HEIGHT - 200) as f32,
+        })
+        .with(PlayerPhysicsComponent {
+            ax: 0.0,
+            ay: 0.0,
+            vx: 0.0,
+            vy: 0.0,
+            ax_max: 1.0, // FIXME: insert real values
+            ay_max: 1.0,
+            vx_max: 8.0,
+            vy_max: 8.0,
+            x_min: (50 + 53/* FIXME */) as f32,
+            x_max: (SCREEN_WIDTH - 50 - 53/* FIXME */) as f32,
+            y_min: (50 + 43/* FIXME */) as f32,
+            y_max: (SCREEN_HEIGHT - 50 - 43/* FIXME */) as f32,
+        })
+        .with(PlayerAnimationComponent::default())
+        .build();
+
+    let mut dispatcher = DispatcherBuilder::new()
+        .with(PlayerMovementSystem, "player_movement", &[])
+        .with(
+            PlayerAnimationSystem,
+            "player_animation",
+            &["player_movement"],
+        )
+        .with_thread_local(RenderSystem::new(canvas, sprite_manager))
+        .build();
+
     let mut event_pump = sdl_context.event_pump().unwrap();
 
-    let frames = [0, 1, 2, 3, 2, 1, 0, 4, 5, 6, 5, 4];
-    let mut frame_count = 0;
-    let mut frame_idx = 0;
-
     'running: loop {
-        canvas.clear();
+        {
+            let mut player_input = world.write_resource::<PlayerInput>();
 
-        canvas
-            .copy(
-                &player_sprite.texture(),
-                /* FIXME: returning an option here might not be the best idea, since 'None' in this context means "copy the whole source texture" */
-                player_sprite.get_rect_of_frame(frames[frame_idx]),
-                sdl2::rect::Rect::new(
-                    (SCREEN_WIDTH as i32 - (player_sprite.frame_width() * 2) as i32) / 2,
-                    500,
-                    (player_sprite.frame_width() * 2) as u32,
-                    (player_sprite.frame_height() * 2) as u32,
-                ),
-            )
-            .unwrap();
-        for event in event_pump.poll_iter() {
-            match event {
-                Event::Quit { .. }
-                | Event::KeyDown {
-                    keycode: Some(Keycode::Escape),
-                    ..
-                } => break 'running,
-                _ => {}
+            for event in event_pump.poll_iter() {
+                match event {
+                    Event::Quit { .. }
+                    | Event::KeyDown {
+                        keycode: Some(Keycode::Escape),
+                        ..
+                    } => break 'running,
+                    _ => player_input.update_player_input(event),
+                }
             }
         }
 
-        frame_count += 1;
-        frame_idx = frame_count / 6;
+        dispatcher.dispatch(&world);
+        world.maintain();
 
-        if frame_idx >= frames.len() {
-            frame_idx = 0;
-            frame_count = 0;
-        }
-
-        canvas.present();
         ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
     }
 
-    return Ok(());
+    Ok(())
 }

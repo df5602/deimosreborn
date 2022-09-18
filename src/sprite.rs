@@ -33,7 +33,7 @@ impl<'t> Sprite<'t> {
         let color_map = Self::load_sprite_from_gif(path_color_map)?;
         let alpha_map = Self::load_sprite_from_gif(path_alpha_map)?;
 
-        let texture = Self::create_texture(&color_map, &alpha_map, &texture_creator)?;
+        let texture = Self::create_texture(&color_map, &alpha_map, texture_creator)?;
         let texture_query = texture.query();
 
         if (description.border_left + description.frame_dimensions.0) * description.number_of_frames
@@ -84,8 +84,8 @@ impl<'t> Sprite<'t> {
     where
         P: AsRef<Path>,
     {
-        let rwops = RWops::from_file(path, "rb").map_err(|e| SdlError::SpriteLoadError(e))?;
-        rwops.load_gif().map_err(|e| SdlError::SpriteLoadError(e))
+        let rwops = RWops::from_file(path, "rb").map_err(SdlError::SpriteLoadError)?;
+        rwops.load_gif().map_err(SdlError::SpriteLoadError)
     }
 
     fn create_texture<T>(
@@ -114,9 +114,33 @@ impl<'t> Sprite<'t> {
             pixels_target[i * 4] = 255 - grayscale;
         }
 
-        let mut texture = target_surface.as_texture(&texture_creator)?;
+        let mut texture = target_surface.as_texture(texture_creator)?;
         texture.set_blend_mode(BlendMode::Blend);
 
         Ok(texture)
+    }
+}
+
+#[derive(Debug, Copy, Clone)]
+pub struct SpriteId(usize);
+
+pub struct SpriteManager<'t> {
+    sprites: Vec<Sprite<'t>>,
+}
+
+impl<'t> SpriteManager<'t> {
+    pub fn new() -> Self {
+        Self {
+            sprites: Vec::new(),
+        }
+    }
+
+    pub fn insert(&mut self, sprite: Sprite<'t>) -> SpriteId {
+        self.sprites.push(sprite);
+        SpriteId(self.sprites.len() - 1)
+    }
+
+    pub fn get(&self, id: SpriteId) -> &Sprite<'t> {
+        &self.sprites[id.0]
     }
 }
