@@ -15,7 +15,7 @@ impl<'sys> System<'sys> for PlayerAnimationSystem {
 
     fn run(&mut self, (mut animation, physics): Self::SystemData) {
         for (animation, physics) in (&mut animation, &physics).join() {
-            const ANIMATION_DURATION: usize = 2;
+            const ANIMATION_DURATION: usize = 1;
 
             animation.animation_state = match animation.animation_state {
                 PlayerAnimationState::Neutral(n) if n > 0 => PlayerAnimationState::Neutral(n - 1),

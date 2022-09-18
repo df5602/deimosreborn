@@ -3,13 +3,15 @@ mod errors;
 mod sprite;
 
 mod component;
+mod entity;
 mod resource;
 mod system;
 
+use entity::player::Player;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 
-use specs::{Builder, DispatcherBuilder, World, WorldExt};
+use specs::{DispatcherBuilder, World, WorldExt};
 
 use anyhow::{Context, Result};
 
@@ -29,6 +31,8 @@ use std::time::Duration;
 
 const SCREEN_WIDTH: u32 = 1280;
 const SCREEN_HEIGHT: u32 = 960;
+const FRAME_RATE_GAME: u32 = 60;
+const FRAME_RATE_RENDER: u32 = 60;
 
 fn main() -> Result<()> {
     let sdl_context = sdl2::init()
@@ -84,31 +88,13 @@ fn main() -> Result<()> {
     world.register::<PositionComponent>();
     world.register::<SpriteComponent>();
 
-    world
-        .create_entity()
-        .with(SpriteComponent {
-            sprite: player_sprite_id,
-        })
-        .with(PositionComponent {
-            x: (SCREEN_WIDTH / 2) as f32,
-            y: (SCREEN_HEIGHT - 200) as f32,
-        })
-        .with(PlayerPhysicsComponent {
-            ax: 0.0,
-            ay: 0.0,
-            vx: 0.0,
-            vy: 0.0,
-            ax_max: 1.0, // FIXME: insert real values
-            ay_max: 1.0,
-            vx_max: 8.0,
-            vy_max: 8.0,
-            x_min: (50 + 53/* FIXME */) as f32,
-            x_max: (SCREEN_WIDTH - 50 - 53/* FIXME */) as f32,
-            y_min: (50 + 43/* FIXME */) as f32,
-            y_max: (SCREEN_HEIGHT - 50 - 43/* FIXME */) as f32,
-        })
-        .with(PlayerAnimationComponent::default())
-        .build();
+    Player::create_player(
+        &mut world,
+        player_sprite_id,
+        sprite_manager.get_description(player_sprite_id),
+        (SCREEN_WIDTH / 2) as f32,
+        (SCREEN_HEIGHT - 200) as f32,
+    );
 
     let mut dispatcher = DispatcherBuilder::new()
         .with(PlayerMovementSystem, "player_movement", &[])
@@ -141,7 +127,7 @@ fn main() -> Result<()> {
         dispatcher.dispatch(&world);
         world.maintain();
 
-        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
+        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / FRAME_RATE_RENDER));
     }
 
     Ok(())

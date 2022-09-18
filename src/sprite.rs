@@ -10,7 +10,7 @@ use sdl2::surface::Surface;
 use crate::errors::SdlError;
 use anyhow::{bail, Result};
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct SpriteDescription {
     pub number_of_frames: usize,
     pub border_left: usize,
@@ -142,5 +142,9 @@ impl<'t> SpriteManager<'t> {
 
     pub fn get(&self, id: SpriteId) -> &Sprite<'t> {
         &self.sprites[id.0]
+    }
+
+    pub fn get_description(&self, id: SpriteId) -> &SpriteDescription {
+        &self.sprites[id.0].description
     }
 }
