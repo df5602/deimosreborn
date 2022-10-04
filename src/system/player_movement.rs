@@ -59,18 +59,21 @@ impl<'sys> System<'sys> for PlayerMovementSystem {
             }
 
             // Position:
-            position.x += physics.vx;
-            if position.x < physics.x_min {
-                position.x = physics.x_min;
-            } else if position.x > physics.x_max {
-                position.x = physics.x_max;
+            position.x_p = position.x_n;
+            position.y_p = position.y_n;
+
+            position.x_n += physics.vx;
+            if position.x_n < physics.x_min {
+                position.x_n = physics.x_min;
+            } else if position.x_n > physics.x_max {
+                position.x_n = physics.x_max;
             }
 
-            position.y += physics.vy;
-            if position.y < physics.y_min {
-                position.y = physics.y_min;
-            } else if position.y > physics.y_max {
-                position.y = physics.y_max;
+            position.y_n += physics.vy;
+            if position.y_n < physics.y_min {
+                position.y_n = physics.y_min;
+            } else if position.y_n > physics.y_max {
+                position.y_n = physics.y_max;
             }
         }
     }

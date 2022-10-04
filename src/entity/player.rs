@@ -30,7 +30,7 @@ impl Player {
         world
             .create_entity()
             .with(SpriteComponent { sprite: sprite_id })
-            .with(PositionComponent { x, y })
+            .with(PositionComponent::new(x, y))
             .with(PlayerPhysicsComponent {
                 ax: 0.0,
                 ay: 0.0,
