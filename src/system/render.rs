@@ -74,8 +74,8 @@ where
         for (sprite, position, animation) in (&sprite, &position, &animation).join() {
             let sprite_ref = self.sprites.get(sprite.sprite);
 
-            let x = position.x_n * alpha + position.x_p * (1.0 - alpha);
-            let y = position.y_n * alpha + position.y_p * (1.0 - alpha);
+            let x = position.x() * alpha + position.previous_x() * (1.0 - alpha);
+            let y = position.y() * alpha + position.previous_y() * (1.0 - alpha);
 
             self.canvas
             .copy(

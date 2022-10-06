@@ -1,10 +1,10 @@
 use specs::{Component, VecStorage};
 
 pub struct PositionComponent {
-    pub x_n: f32,
-    pub y_n: f32,
-    pub x_p: f32,
-    pub y_p: f32,
+    x_n: f32,
+    y_n: f32,
+    x_p: f32,
+    y_p: f32,
 }
 
 impl Component for PositionComponent {
@@ -19,5 +19,31 @@ impl PositionComponent {
             x_p: x,
             y_p: y,
         }
+    }
+
+    pub fn update_x(&mut self, x: f32) {
+        self.x_p = self.x_n;
+        self.x_n = x;
+    }
+
+    pub fn update_y(&mut self, y: f32) {
+        self.y_p = self.y_n;
+        self.y_n = y;
+    }
+
+    pub fn x(&self) -> f32 {
+        self.x_n
+    }
+
+    pub fn y(&self) -> f32 {
+        self.y_n
+    }
+
+    pub fn previous_x(&self) -> f32 {
+        self.x_p
+    }
+
+    pub fn previous_y(&self) -> f32 {
+        self.y_p
     }
 }
