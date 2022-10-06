@@ -7,6 +7,9 @@ mod entity;
 mod resource;
 mod system;
 
+use log::{debug, error, info, trace, warn};
+use simple_logger::SimpleLogger;
+
 use entity::player::Player;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
@@ -35,12 +38,23 @@ const FRAME_RATE_GAME: u32 = 60;
 const FRAME_RATE_RENDER: u32 = 60;
 
 fn main() -> Result<()> {
+    SimpleLogger::new()
+        .with_level(log::LevelFilter::Warn)
+        .env()
+        .init()?;
+
     let sdl_context = sdl2::init()
         .map_err(errors::SdlError::InitError)
         .context("Failed to initialize SDL2")?;
 
-    sdl2::log::set_output_function(|prio, cat, s| {
-        println!("SDL2 {:?} [{:?}]: {}", prio, cat, s);
+    sdl2::log::set_output_function(|prio, cat, s| match prio {
+        sdl2::log::Priority::Verbose => trace!(target: &format!("SDL2 [{:?}]", cat), "{}", s),
+        sdl2::log::Priority::Debug => debug!(target: &format!("SDL2 [{:?}]", cat), "{}", s),
+        sdl2::log::Priority::Info => info!(target: &format!("SDL2 [{:?}]", cat), "{}", s),
+        sdl2::log::Priority::Warn => warn!(target: &format!("SDL2 [{:?}]", cat), "{}", s),
+        sdl2::log::Priority::Error | sdl2::log::Priority::Critical => {
+            error!(target: &format!("SDL2 [{:?}]", cat), "{}", s)
+        }
     });
 
     let video_subsystem = sdl_context
@@ -130,8 +144,8 @@ fn main() -> Result<()> {
 
     'running: loop {
         let frame_start = Instant::now();
-        println!(
-            "INFO [main loop]: Frame start: {:?}, difference to previous: {} us, difference to tick: {} us",
+        trace!(target: "main loop",
+            "Frame start: {:?}, difference to previous: {} us, difference to tick: {} us",
             frame_start,
             (frame_start - prev_frame_start).as_micros(),
             (frame_start - next_physics_tick).as_micros()
@@ -150,11 +164,12 @@ fn main() -> Result<()> {
                 // If we missed more than a few updates, take the loss and re-synchronize
                 if elapsed > Duration::from_nanos((3 * 1_000_000_000u32 / FRAME_RATE_GAME) as u64) {
                     // Too much time has elapsed, fast-forward
+                    warn!(target: "main loop", "Missed too many physics updates, elapsed: {} us", elapsed.as_micros());
                     continue;
                 }
 
-                println!(
-                    "INFO [main loop]: Updating physics... elapsed: {} us",
+                trace!(target: "main loop",
+                    "Updating physics... elapsed: {} us",
                     elapsed.as_micros()
                 );
 
@@ -190,22 +205,23 @@ fn main() -> Result<()> {
 
         // Try to recover vsync
         if (frame_end - frame_start).as_millis() > 8 {
-            println!("INFO [main loop]: vsync");
+            let next_vsync =
+                frame_end + Duration::from_nanos(1_000_000_000u64 / FRAME_RATE_RENDER as u64);
+            trace!(target: "main loop", "next vsync: {:?}", next_vsync);
             let mut timing = world.write_resource::<Timing>();
-            timing.next_vsync =
-                Some(frame_end + Duration::from_nanos(1_000_000_000u64 / FRAME_RATE_RENDER as u64));
+            timing.next_vsync = Some(next_vsync);
         } else {
             let mut timing = world.write_resource::<Timing>();
             if let Some(next_vsync) = timing.next_vsync {
                 if frame_end > next_vsync {
-                    println!("WARNING [main loop]: reset vsync");
+                    warn!(target: "main loop", "reset vsync");
                     timing.next_vsync = None;
                 }
             }
         }
 
-        println!(
-            "INFO [main loop]: Frame end: {:?}, difference to frame start: {} us",
+        trace!(target: "main loop",
+            "Frame end: {:?}, difference to frame start: {} us",
             frame_end,
             (frame_end - frame_start).as_micros()
         );

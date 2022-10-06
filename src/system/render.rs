@@ -1,5 +1,6 @@
 use std::time::Instant;
 
+use log::{trace, warn};
 use sdl2::{
     pixels::Color,
     render::{Canvas, RenderTarget},
@@ -58,12 +59,12 @@ where
         let elapsed = interp_time - timing.physics_tick;
         let mut alpha = elapsed.as_secs_f32() / timing.delta_time.as_secs_f32();
         if alpha > 1.0 {
-            println!("WARNING [RenderSystem]: alpha ({}) > 1.0", alpha);
+            warn!(target: "RenderSystem", "alpha ({}) > 1.0", alpha);
             alpha = 1.0;
         }
 
-        println!(
-            "INFO [RenderSystem]: physics: {:?}, interp_time: {:?}, diff: {} us, alpha: {}",
+        trace!(target: "RenderSystem",
+            "physics tick: {:?}, interp_time: {:?}, diff: {} us, alpha: {}",
             timing.physics_tick,
             interp_time,
             elapsed.as_micros(),
@@ -74,7 +75,7 @@ where
             let sprite_ref = self.sprites.get(sprite.sprite);
 
             let x = position.x_n * alpha + position.x_p * (1.0 - alpha);
-            let y: f32 = position.y_n * alpha + position.y_p * (1.0 - alpha);
+            let y = position.y_n * alpha + position.y_p * (1.0 - alpha);
 
             self.canvas
             .copy(
