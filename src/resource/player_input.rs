@@ -6,6 +6,7 @@ pub struct PlayerInput {
     pub right: bool,
     pub up: bool,
     pub down: bool,
+    pub shoot_air: bool,
 }
 
 impl PlayerInput {
@@ -27,6 +28,10 @@ impl PlayerInput {
                 keycode: Some(Keycode::Down),
                 ..
             } => self.down = true,
+            Event::KeyDown {
+                keycode: Some(Keycode::RGui) | Some(Keycode::LGui),
+                ..
+            } => self.shoot_air = true,
             Event::KeyUp {
                 keycode: Some(Keycode::Left),
                 ..
@@ -43,6 +48,10 @@ impl PlayerInput {
                 keycode: Some(Keycode::Down),
                 ..
             } => self.down = false,
+            Event::KeyUp {
+                keycode: Some(Keycode::RGui) | Some(Keycode::LGui),
+                ..
+            } => self.shoot_air = false,
             _ => {}
         }
     }

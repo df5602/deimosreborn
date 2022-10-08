@@ -1,5 +1,6 @@
 use specs::{Component, VecStorage};
 
+#[derive(Copy, Clone)]
 pub struct PositionComponent {
     x_n: f32,
     y_n: f32,

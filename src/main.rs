@@ -10,22 +10,22 @@ mod system;
 use log::{debug, error, info, trace, warn};
 use simple_logger::SimpleLogger;
 
-use entity::player::Player;
 use sdl2::keyboard::Keycode;
 use sdl2::{event::Event, pixels::Color};
 
-use specs::{Builder, DispatcherBuilder, World, WorldExt};
+use specs::{DispatcherBuilder, World, WorldExt};
 
 use anyhow::{Context, Result};
 
 use component::{
     player_animation::PlayerAnimationComponent, player_physics::PlayerPhysicsComponent,
-    position::PositionComponent, sprite::SpriteComponent,
+    player_weapon::PlayerWeaponComponent, position::PositionComponent, sprite::SpriteComponent,
 };
+use entity::player::Player;
 use resource::{player_input::PlayerInput, timing::Timing};
 use system::{
     player_animation::PlayerAnimationSystem, player_movement::PlayerMovementSystem,
-    render::RenderSystem,
+    player_weapon::PlayerWeaponSystem, render::RenderSystem,
 };
 
 use sprite::{Sprite, SpriteDescription, SpriteManager};
@@ -113,6 +113,7 @@ fn main() -> Result<()> {
     world.insert(Timing::default());
     world.register::<PlayerAnimationComponent>();
     world.register::<PlayerPhysicsComponent>();
+    world.register::<PlayerWeaponComponent>();
     world.register::<PositionComponent>();
     world.register::<SpriteComponent>();
 
@@ -127,16 +128,12 @@ fn main() -> Result<()> {
         sprite_manager.get_description(player_sprite_id),
         (SCREEN_WIDTH / 2) as f32,
         (SCREEN_HEIGHT - 200) as f32,
+        bullet_sprite_id,
     );
-
-    world
-        .create_entity()
-        .with(SpriteComponent::new(bullet_sprite_id))
-        .with(PositionComponent::new(300.0, 300.0))
-        .build();
 
     let mut dispatcher_game = DispatcherBuilder::new()
         .with(PlayerMovementSystem, "player_movement", &[])
+        .with(PlayerWeaponSystem, "player_weapon", &["player_movement"])
         .with(
             PlayerAnimationSystem,
             "player_animation",

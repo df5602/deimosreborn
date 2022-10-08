@@ -3,7 +3,7 @@ use specs::{Builder, World, WorldExt};
 use crate::{
     component::{
         player_animation::PlayerAnimationComponent, player_physics::PlayerPhysicsComponent,
-        position::PositionComponent, sprite::SpriteComponent,
+        player_weapon::PlayerWeaponComponent, position::PositionComponent, sprite::SpriteComponent,
     },
     sprite::{SpriteDescription, SpriteId},
     /* FIXME: do proper delta time implementation in physics systems */
@@ -26,6 +26,7 @@ impl Player {
         sprite_desc: &SpriteDescription,
         x: f32,
         y: f32,
+        bullet_sprite_id: SpriteId,
     ) {
         world
             .create_entity()
@@ -46,6 +47,10 @@ impl Player {
                 y_max: (SCREEN_HEIGHT - 50 - sprite_desc.frame_dimensions.1 as u32) as f32,
             })
             .with(PlayerAnimationComponent::default())
+            .with(PlayerWeaponComponent::new(
+                FRAME_RATE_GAME / 4,
+                bullet_sprite_id,
+            ))
             .build();
     }
 }
