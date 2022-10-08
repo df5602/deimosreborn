@@ -13,14 +13,12 @@ pub enum PlayerAnimationState {
 
 pub struct PlayerAnimationComponent {
     pub animation_state: PlayerAnimationState,
-    pub sprite_frame_idx: usize,
 }
 
 impl Default for PlayerAnimationComponent {
     fn default() -> Self {
         Self {
             animation_state: PlayerAnimationState::Neutral(0),
-            sprite_frame_idx: 0,
         }
     }
 }

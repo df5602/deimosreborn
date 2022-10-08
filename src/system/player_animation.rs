@@ -3,6 +3,7 @@ use specs::{Join, ReadStorage, System, WriteStorage};
 use crate::component::{
     player_animation::{PlayerAnimationComponent, PlayerAnimationState},
     player_physics::PlayerPhysicsComponent,
+    sprite::SpriteComponent,
 };
 
 pub struct PlayerAnimationSystem;
@@ -11,10 +12,11 @@ impl<'sys> System<'sys> for PlayerAnimationSystem {
     type SystemData = (
         WriteStorage<'sys, PlayerAnimationComponent>,
         ReadStorage<'sys, PlayerPhysicsComponent>,
+        WriteStorage<'sys, SpriteComponent>,
     );
 
-    fn run(&mut self, (mut animation, physics): Self::SystemData) {
-        for (animation, physics) in (&mut animation, &physics).join() {
+    fn run(&mut self, (mut animation, physics, mut sprite): Self::SystemData) {
+        for (animation, physics, sprite) in (&mut animation, &physics, &mut sprite).join() {
             const ANIMATION_DURATION: usize = 1;
 
             animation.animation_state = match animation.animation_state {
@@ -103,7 +105,7 @@ impl<'sys> System<'sys> for PlayerAnimationSystem {
                 }
             };
 
-            animation.sprite_frame_idx = match animation.animation_state {
+            sprite.current_frame_idx = match animation.animation_state {
                 PlayerAnimationState::Neutral(_) => 0,
                 PlayerAnimationState::Left1(_) => 1,
                 PlayerAnimationState::Left2(_) => 2,

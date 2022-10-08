@@ -8,12 +8,10 @@ use sdl2::{
 use specs::{Join, Read, ReadStorage, System};
 
 use crate::{
-    component::{
-        player_animation::PlayerAnimationComponent, position::PositionComponent,
-        sprite::SpriteComponent,
-    },
+    component::{position::PositionComponent, sprite::SpriteComponent},
     resource::timing::Timing,
     sprite::SpriteManager,
+    SCREEN_SCALE, // FIXME: Proper handling of window size?
 };
 
 pub struct RenderSystem<'t, T>
@@ -43,11 +41,10 @@ where
     type SystemData = (
         ReadStorage<'sys, SpriteComponent>,
         ReadStorage<'sys, PositionComponent>,
-        ReadStorage<'sys, PlayerAnimationComponent>,
         Read<'sys, Timing>,
     );
 
-    fn run(&mut self, (sprite, position, animation, timing): Self::SystemData) {
+    fn run(&mut self, (sprite, position, timing): Self::SystemData) {
         self.canvas.set_draw_color(Color::RGB(0, 100, 200));
         self.canvas.clear();
 
@@ -71,7 +68,7 @@ where
             alpha
         );
 
-        for (sprite, position, animation) in (&sprite, &position, &animation).join() {
+        for (sprite, position) in (&sprite, &position).join() {
             let sprite_ref = self.sprites.get(sprite.sprite);
 
             let x = position.x() * alpha + position.previous_x() * (1.0 - alpha);
@@ -81,12 +78,12 @@ where
             .copy(
                 sprite_ref.texture(),
                 /* FIXME: returning an option here might not be the best idea, since 'None' in this context means "copy the whole source texture" */
-                sprite_ref.get_rect_of_frame(animation.sprite_frame_idx),
+                sprite_ref.get_rect_of_frame(sprite.current_frame_idx),
                 sdl2::rect::Rect::new(
-                    x.round() as i32 - (sprite_ref.frame_width()) as i32,
-                    y.round() as i32 - (sprite_ref.frame_height()) as i32,
-                    (sprite_ref.frame_width() * 2) as u32,
-                    (sprite_ref.frame_height() * 2) as u32,
+                    x.round() as i32 - (sprite_ref.frame_width() as u32 / 2 * SCREEN_SCALE) as i32,
+                    y.round() as i32 - (sprite_ref.frame_height() as u32 / 2 * SCREEN_SCALE) as i32,
+                    sprite_ref.frame_width() as u32 * SCREEN_SCALE,
+                    sprite_ref.frame_height() as u32 * SCREEN_SCALE,
                 ),
             )
             .unwrap(); // FIXME

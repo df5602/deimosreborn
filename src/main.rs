@@ -11,10 +11,10 @@ use log::{debug, error, info, trace, warn};
 use simple_logger::SimpleLogger;
 
 use entity::player::Player;
-use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
+use sdl2::{event::Event, pixels::Color};
 
-use specs::{DispatcherBuilder, World, WorldExt};
+use specs::{Builder, DispatcherBuilder, World, WorldExt};
 
 use anyhow::{Context, Result};
 
@@ -32,8 +32,9 @@ use sprite::{Sprite, SpriteDescription, SpriteManager};
 
 use std::time::{Duration, Instant};
 
-const SCREEN_WIDTH: u32 = 1280;
-const SCREEN_HEIGHT: u32 = 960;
+const SCREEN_SCALE: u32 = 2;
+const SCREEN_WIDTH: u32 = 640 * SCREEN_SCALE;
+const SCREEN_HEIGHT: u32 = 480 * SCREEN_SCALE;
 const FRAME_RATE_GAME: u32 = 60;
 const FRAME_RATE_RENDER: u32 = 60;
 
@@ -103,6 +104,10 @@ fn main() -> Result<()> {
     let mut sprite_manager = SpriteManager::new();
     let player_sprite_id = sprite_manager.insert(player_sprite);
 
+    let bullet_sprite =
+        Sprite::create_placeholder_circle(4, Color::RGB(200, 50, 50), &texture_creator)?;
+    let bullet_sprite_id = sprite_manager.insert(bullet_sprite);
+
     let mut world = World::new();
     world.insert(PlayerInput::default());
     world.insert(Timing::default());
@@ -123,6 +128,12 @@ fn main() -> Result<()> {
         (SCREEN_WIDTH / 2) as f32,
         (SCREEN_HEIGHT - 200) as f32,
     );
+
+    world
+        .create_entity()
+        .with(SpriteComponent::new(bullet_sprite_id))
+        .with(PositionComponent::new(300.0, 300.0))
+        .build();
 
     let mut dispatcher_game = DispatcherBuilder::new()
         .with(PlayerMovementSystem, "player_movement", &[])

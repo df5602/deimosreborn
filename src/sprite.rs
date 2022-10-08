@@ -1,7 +1,8 @@
 use std::path::Path;
 
+use sdl2::gfx::primitives::DrawRenderer;
 use sdl2::image::ImageRWops;
-use sdl2::pixels::PixelFormatEnum;
+use sdl2::pixels::{Color, PixelFormatEnum};
 use sdl2::rect::Rect;
 use sdl2::render::{BlendMode, Texture, TextureCreator};
 use sdl2::rwops::RWops;
@@ -51,6 +52,40 @@ impl<'t> Sprite<'t> {
         Ok(Self {
             texture,
             description,
+        })
+    }
+
+    pub fn create_placeholder_circle<T>(
+        radius: u32,
+        color: Color,
+        texture_creator: &'t TextureCreator<T>,
+    ) -> Result<Sprite<'t>> {
+        let diam = radius * 2 + 1;
+        let surface = Surface::new(diam, diam, PixelFormatEnum::BGRA8888).map_err(|e| {
+            SdlError::PlaceHolderCreateError(format!("Could not create surface: {}", e))
+        })?;
+
+        let canvas = surface.into_canvas().map_err(|e| {
+            SdlError::PlaceHolderCreateError(format!("Could not create canvas: {}", e))
+        })?;
+
+        canvas
+            .filled_circle(radius as i16, radius as i16, radius as i16, color)
+            .map_err(|e| {
+                SdlError::PlaceHolderCreateError(format!("Failed to draw circle: {}", e))
+            })?;
+
+        let surface = canvas.into_surface();
+        let texture = surface.as_texture(texture_creator)?;
+
+        Ok(Self {
+            texture,
+            description: SpriteDescription {
+                number_of_frames: 1,
+                border_left: 0,
+                border_up: 0,
+                frame_dimensions: (diam as usize, diam as usize),
+            },
         })
     }
 
