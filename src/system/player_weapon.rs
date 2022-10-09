@@ -27,6 +27,10 @@ impl<'sys> System<'sys> for PlayerWeaponSystem {
     fn run(&mut self, data: Self::SystemData) {
         let (player_input, entities, lazy_update, mut weapon, position) = data;
 
+        // TODO: glow
+        // TODO: SFX
+        // FIXME: this probably needs to be organised better
+
         for (weapon, position) in (&mut weapon, &position).join() {
             if weapon.cooldown > 0 {
                 weapon.cooldown -= 1;

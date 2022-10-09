@@ -55,6 +55,7 @@ impl<'t> Sprite<'t> {
         })
     }
 
+    #[allow(dead_code)]
     pub fn create_placeholder_circle<T>(
         radius: u32,
         color: Color,

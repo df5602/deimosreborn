@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-#[allow(clippy::enum_variant_names)]
+#[allow(clippy::enum_variant_names, dead_code)]
 #[derive(Error, Debug)]
 pub enum SdlError {
     #[error("Initialization error: {0}")]

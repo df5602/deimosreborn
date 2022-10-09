@@ -10,8 +10,8 @@ mod system;
 use log::{debug, error, info, trace, warn};
 use simple_logger::SimpleLogger;
 
+use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
-use sdl2::{event::Event, pixels::Color};
 
 use specs::{DispatcherBuilder, World, WorldExt};
 
@@ -90,6 +90,7 @@ fn main() -> Result<()> {
     sdl2::hint::set("SDL_HINT_RENDER_VSYNC", "1");
 
     let texture_creator = canvas.texture_creator();
+    let mut sprite_manager = SpriteManager::new();
 
     let player_sprite = Sprite::from_gif(
         SpriteDescription {
@@ -102,13 +103,21 @@ fn main() -> Result<()> {
         "assets/ Data/Paks/Game/im08/Player 1 Orange IA[PL1O].gif",
         &texture_creator,
     )?;
-
-    let mut sprite_manager = SpriteManager::new();
     let player_sprite_id = sprite_manager.insert(player_sprite);
 
-    let bullet_sprite =
-        Sprite::create_placeholder_circle(4, Color::RGB(200, 50, 50), &texture_creator)?;
-    let bullet_sprite_id = sprite_manager.insert(bullet_sprite);
+    let ion_cannon_bullet_sprite = Sprite::from_gif(
+        SpriteDescription {
+            number_of_frames: 36,
+            border_left: 3,
+            border_up: 3,
+            frame_dimensions: (20, 20),
+        },
+        "assets/ Data/Paks/Game/im08/Ion Cannon Bullet IC[icbu].gif",
+        "assets/ Data/Paks/Game/im08/Ion Cannon Bullet IA[ICBU].gif",
+        &texture_creator,
+    )?;
+
+    let bullet_sprite_id = sprite_manager.insert(ion_cannon_bullet_sprite);
 
     let mut world = World::new();
     world.insert(PlayerInput::default());

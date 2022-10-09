@@ -68,6 +68,8 @@ where
             alpha
         );
 
+        // TODO: RenderSystem needs concept of layers or z-index
+
         for (sprite, position) in (&sprite, &position).join() {
             let sprite_ref = self.sprites.get(sprite.sprite);
 
