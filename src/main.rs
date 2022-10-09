@@ -18,11 +18,13 @@ use specs::{DispatcherBuilder, World, WorldExt};
 use anyhow::{Context, Result};
 
 use component::{
-    player_animation::PlayerAnimationComponent, player_physics::PlayerPhysicsComponent,
-    player_weapon::PlayerWeaponComponent, position::PositionComponent, sprite::SpriteComponent,
+    bullet_physics::BulletPhysicsComponent, player_animation::PlayerAnimationComponent,
+    player_physics::PlayerPhysicsComponent, player_weapon::PlayerWeaponComponent,
+    position::PositionComponent, sprite::SpriteComponent,
 };
 use entity::player::Player;
 use resource::{player_input::PlayerInput, timing::Timing};
+use system::bullet_physics::BulletPhysicsSystem;
 use system::{
     player_animation::PlayerAnimationSystem, player_movement::PlayerMovementSystem,
     player_weapon::PlayerWeaponSystem, render::RenderSystem,
@@ -111,6 +113,7 @@ fn main() -> Result<()> {
     let mut world = World::new();
     world.insert(PlayerInput::default());
     world.insert(Timing::default());
+    world.register::<BulletPhysicsComponent>();
     world.register::<PlayerAnimationComponent>();
     world.register::<PlayerPhysicsComponent>();
     world.register::<PlayerWeaponComponent>();
@@ -134,6 +137,7 @@ fn main() -> Result<()> {
     let mut dispatcher_game = DispatcherBuilder::new()
         .with(PlayerMovementSystem, "player_movement", &[])
         .with(PlayerWeaponSystem, "player_weapon", &["player_movement"])
+        .with(BulletPhysicsSystem, "bullet_physics", &[])
         .with(
             PlayerAnimationSystem,
             "player_animation",

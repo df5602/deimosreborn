@@ -1,10 +1,13 @@
+use log::info;
 use specs::{Builder, Entities, Join, LazyUpdate, Read, ReadStorage, System, WriteStorage};
 
 use crate::{
     component::{
-        player_weapon::PlayerWeaponComponent, position::PositionComponent, sprite::SpriteComponent,
+        bullet_physics::BulletPhysicsComponent, player_weapon::PlayerWeaponComponent,
+        position::PositionComponent, sprite::SpriteComponent,
     },
     resource::player_input::PlayerInput,
+    SCREEN_HEIGHT, SCREEN_WIDTH,
 };
 
 pub struct PlayerWeaponSystem;
@@ -31,7 +34,17 @@ impl<'sys> System<'sys> for PlayerWeaponSystem {
                     .create_entity(&entities)
                     .with(SpriteComponent::new(weapon.bullet_sprite))
                     .with(*position)
+                    .with(BulletPhysicsComponent {
+                        vx: 0.0,
+                        vy: -10.0,
+                        x_min: -32.0, // FIXME: need a better solution for bounding boxes, need to know sprite size here?
+                        x_max: (SCREEN_WIDTH + 32) as f32,
+                        y_min: -32.0,
+                        y_max: (SCREEN_HEIGHT + 32) as f32,
+                    })
                     .build();
+
+                info!(target: "PlayerWeaponSystem", "Spawn bullet");
             }
         }
     }
