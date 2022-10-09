@@ -7,8 +7,11 @@ use crate::{
         position::PositionComponent, sprite::SpriteComponent,
     },
     resource::player_input::PlayerInput,
-    SCREEN_HEIGHT, SCREEN_WIDTH,
+    FRAME_RATE_GAME, SCREEN_HEIGHT, SCREEN_WIDTH,
 };
+
+const VY: f32 = -0.000625 * SCREEN_HEIGHT as f32 * (1000.0 / (FRAME_RATE_GAME as f32));
+const POS_OFFSET: f32 = 0.007292 * SCREEN_WIDTH as f32;
 
 pub struct PlayerWeaponSystem;
 
@@ -30,13 +33,21 @@ impl<'sys> System<'sys> for PlayerWeaponSystem {
             } else if player_input.shoot_air {
                 weapon.cooldown += weapon.cooldown_reset;
 
+                let mut bullet_left = *position;
+                let left_x = bullet_left.x() - POS_OFFSET;
+                bullet_left.reset_x(left_x);
+
+                let mut bullet_right = *position;
+                let right_x = bullet_right.x() + POS_OFFSET;
+                bullet_right.reset_x(right_x);
+
                 lazy_update
                     .create_entity(&entities)
                     .with(SpriteComponent::new(weapon.bullet_sprite))
-                    .with(*position)
+                    .with(bullet_left)
                     .with(BulletPhysicsComponent {
                         vx: 0.0,
-                        vy: -10.0,
+                        vy: VY,
                         x_min: -32.0, // FIXME: need a better solution for bounding boxes, need to know sprite size here?
                         x_max: (SCREEN_WIDTH + 32) as f32,
                         y_min: -32.0,
@@ -44,7 +55,21 @@ impl<'sys> System<'sys> for PlayerWeaponSystem {
                     })
                     .build();
 
-                info!(target: "PlayerWeaponSystem", "Spawn bullet");
+                lazy_update
+                    .create_entity(&entities)
+                    .with(SpriteComponent::new(weapon.bullet_sprite))
+                    .with(bullet_right)
+                    .with(BulletPhysicsComponent {
+                        vx: 0.0,
+                        vy: VY,
+                        x_min: -32.0, // FIXME: need a better solution for bounding boxes, need to know sprite size here?
+                        x_max: (SCREEN_WIDTH + 32) as f32,
+                        y_min: -32.0,
+                        y_max: (SCREEN_HEIGHT + 32) as f32,
+                    })
+                    .build();
+
+                info!(target: "PlayerWeaponSystem", "Spawn bullets");
             }
         }
     }

@@ -27,8 +27,20 @@ impl PositionComponent {
         self.x_n = x;
     }
 
+    #[allow(dead_code)]
+    pub fn reset_x(&mut self, x: f32) {
+        self.x_p = x;
+        self.x_n = x;
+    }
+
     pub fn update_y(&mut self, y: f32) {
         self.y_p = self.y_n;
+        self.y_n = y;
+    }
+
+    #[allow(dead_code)]
+    pub fn reset_y(&mut self, y: f32) {
+        self.y_p = y;
         self.y_n = y;
     }
 

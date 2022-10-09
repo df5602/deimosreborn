@@ -54,7 +54,7 @@ impl Player {
             })
             .with(PlayerAnimationComponent::default())
             .with(PlayerWeaponComponent::new(
-                FRAME_RATE_GAME / 4,
+                FRAME_RATE_GAME / 6,
                 bullet_sprite_id,
             ))
             .build();
