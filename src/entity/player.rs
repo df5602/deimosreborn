@@ -6,6 +6,7 @@ use crate::{
         player_weapon::PlayerWeaponComponent, position::PositionComponent, sprite::SpriteComponent,
     },
     sprite::{SpriteDescription, SpriteId},
+    system::render::Layer,
     /* FIXME: do proper delta time implementation in physics systems */
     FRAME_RATE_GAME,
     /* FIXME: should not be used via constant (maybe have screen width / height as resource and a bounding box component?) */
@@ -30,7 +31,7 @@ impl Player {
     ) {
         world
             .create_entity()
-            .with(SpriteComponent::new(sprite_id))
+            .with(SpriteComponent::new(sprite_id, Layer::AirUnits))
             .with(PositionComponent::new(x, y))
             .with(PlayerPhysicsComponent {
                 ax: 0.0,

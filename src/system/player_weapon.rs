@@ -7,6 +7,7 @@ use crate::{
         position::PositionComponent, sprite::SpriteComponent,
     },
     resource::player_input::PlayerInput,
+    system::render::Layer,
     FRAME_RATE_GAME, SCREEN_HEIGHT, SCREEN_WIDTH,
 };
 
@@ -47,7 +48,7 @@ impl<'sys> System<'sys> for PlayerWeaponSystem {
 
                 lazy_update
                     .create_entity(&entities)
-                    .with(SpriteComponent::new(weapon.bullet_sprite))
+                    .with(SpriteComponent::new(weapon.bullet_sprite, Layer::Effects))
                     .with(bullet_left)
                     .with(BulletPhysicsComponent {
                         vx: 0.0,
@@ -61,7 +62,7 @@ impl<'sys> System<'sys> for PlayerWeaponSystem {
 
                 lazy_update
                     .create_entity(&entities)
-                    .with(SpriteComponent::new(weapon.bullet_sprite))
+                    .with(SpriteComponent::new(weapon.bullet_sprite, Layer::Effects))
                     .with(bullet_right)
                     .with(BulletPhysicsComponent {
                         vx: 0.0,

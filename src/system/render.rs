@@ -14,6 +14,16 @@ use crate::{
     SCREEN_SCALE, // FIXME: Proper handling of window size?
 };
 
+/// Render layer
+/// Sprites are rendered according to their associated layer (lower enum value = background)
+#[derive(PartialEq, Eq)]
+pub enum Layer {
+    /// Explosions, bullets, etc.
+    Effects,
+    /// Player unit, air enemies
+    AirUnits,
+}
+
 pub struct RenderSystem<'t, T>
 where
     T: RenderTarget,
@@ -32,45 +42,19 @@ where
             sprites: sprite_manager,
         }
     }
-}
 
-impl<'sys, 't, T> System<'sys> for RenderSystem<'t, T>
-where
-    T: RenderTarget,
-{
-    type SystemData = (
-        ReadStorage<'sys, SpriteComponent>,
-        ReadStorage<'sys, PositionComponent>,
-        Read<'sys, Timing>,
-    );
+    fn render_layer(
+        &mut self,
+        system_data: &<RenderSystem<'t, T> as System>::SystemData,
+        alpha: f32,
+        layer: Layer,
+    ) {
+        let (sprite, position, _) = system_data;
 
-    fn run(&mut self, (sprite, position, timing): Self::SystemData) {
-        self.canvas.set_draw_color(Color::RGB(0, 100, 200));
-        self.canvas.clear();
-
-        let interp_time = match timing.next_vsync {
-            Some(next_vsync) => next_vsync,
-            None => Instant::now(),
-        };
-
-        let elapsed = interp_time - timing.physics_tick;
-        let mut alpha = elapsed.as_secs_f32() / timing.delta_time.as_secs_f32();
-        if alpha > 1.0 {
-            warn!(target: "RenderSystem", "alpha ({}) > 1.0", alpha);
-            alpha = 1.0;
-        }
-
-        trace!(target: "RenderSystem",
-            "physics tick: {:?}, interp_time: {:?}, diff: {} us, alpha: {}",
-            timing.physics_tick,
-            interp_time,
-            elapsed.as_micros(),
-            alpha
-        );
-
-        // TODO: RenderSystem needs concept of layers or z-index
-
-        for (sprite, position) in (&sprite, &position).join() {
+        for (sprite, position) in (sprite, position)
+            .join()
+            .filter(|(sprite, _)| sprite.layer == layer)
+        {
             let sprite_ref = self.sprites.get(sprite.sprite);
 
             let x = position.x() * alpha + position.previous_x() * (1.0 - alpha);
@@ -90,6 +74,52 @@ where
             )
             .unwrap(); // FIXME
         }
+    }
+}
+
+impl<'sys, 't, T> System<'sys> for RenderSystem<'t, T>
+where
+    T: RenderTarget,
+{
+    type SystemData = (
+        ReadStorage<'sys, SpriteComponent>,
+        ReadStorage<'sys, PositionComponent>,
+        Read<'sys, Timing>,
+    );
+
+    fn run(&mut self, data: Self::SystemData) {
+        self.canvas.set_draw_color(Color::RGB(0, 100, 200));
+        self.canvas.clear();
+
+        let mut alpha;
+        {
+            let (_, _, timing) = &data;
+            let interp_time = match timing.next_vsync {
+                Some(next_vsync) => next_vsync,
+                None => Instant::now(),
+            };
+
+            let elapsed = interp_time - timing.physics_tick;
+            alpha = elapsed.as_secs_f32() / timing.delta_time.as_secs_f32();
+            if alpha > 1.0 {
+                warn!(target: "RenderSystem", "alpha ({}) > 1.0", alpha);
+                alpha = 1.0;
+            }
+
+            trace!(target: "RenderSystem",
+                "physics tick: {:?}, interp_time: {:?}, diff: {} us, alpha: {}",
+                timing.physics_tick,
+                interp_time,
+                elapsed.as_micros(),
+                alpha
+            );
+        }
+
+        // Render effects
+        self.render_layer(&data, alpha, Layer::Effects);
+
+        // Render player, air enemies
+        self.render_layer(&data, alpha, Layer::AirUnits);
 
         self.canvas.present();
     }
