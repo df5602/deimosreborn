@@ -1,12 +1,14 @@
 use log::info;
-use specs::{Builder, Entities, Join, LazyUpdate, Read, ReadStorage, System, WriteStorage};
+use specs::{
+    Builder, Entities, Join, LazyUpdate, Read, ReadExpect, ReadStorage, System, WriteStorage,
+};
 
 use crate::{
     component::{
         bullet_physics::BulletPhysicsComponent, player_weapon::PlayerWeaponComponent,
         position::PositionComponent, sprite::SpriteComponent,
     },
-    resource::player_input::PlayerInput,
+    resource::{player_input::PlayerInput, sound::SoundSystem},
     system::render::Layer,
     FRAME_RATE_GAME, SCREEN_HEIGHT, SCREEN_WIDTH,
 };
@@ -19,6 +21,7 @@ pub struct PlayerWeaponSystem;
 impl<'sys> System<'sys> for PlayerWeaponSystem {
     type SystemData = (
         Read<'sys, PlayerInput>,
+        ReadExpect<'sys, SoundSystem>,
         Entities<'sys>,
         Read<'sys, LazyUpdate>,
         WriteStorage<'sys, PlayerWeaponComponent>,
@@ -26,7 +29,7 @@ impl<'sys> System<'sys> for PlayerWeaponSystem {
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (player_input, entities, lazy_update, mut weapon, position) = data;
+        let (player_input, sound, entities, lazy_update, mut weapon, position) = data;
 
         // TODO: glow
         // TODO: SFX
@@ -73,6 +76,13 @@ impl<'sys> System<'sys> for PlayerWeaponSystem {
                         y_max: (SCREEN_HEIGHT + 32) as f32,
                     })
                     .build();
+
+                sound
+                    .sender
+                    .lock()
+                    .expect("mutex is valid")
+                    .send(weapon.bullet_sound)
+                    .expect("channel is valid");
 
                 info!(target: "PlayerWeaponSystem", "Spawn bullets");
             }

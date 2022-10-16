@@ -5,6 +5,7 @@ use crate::{
         player_animation::PlayerAnimationComponent, player_physics::PlayerPhysicsComponent,
         player_weapon::PlayerWeaponComponent, position::PositionComponent, sprite::SpriteComponent,
     },
+    sound::SoundId,
     sprite::{SpriteDescription, SpriteId},
     system::render::Layer,
     /* FIXME: do proper delta time implementation in physics systems */
@@ -28,6 +29,7 @@ impl Player {
         x: f32,
         y: f32,
         bullet_sprite_id: SpriteId,
+        bullet_sound_id: SoundId,
     ) {
         world
             .create_entity()
@@ -57,6 +59,7 @@ impl Player {
             .with(PlayerWeaponComponent::new(
                 FRAME_RATE_GAME / 6,
                 bullet_sprite_id,
+                bullet_sound_id,
             ))
             .build();
     }

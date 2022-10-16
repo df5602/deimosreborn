@@ -9,4 +9,8 @@ pub enum SdlError {
     SpriteLoadError(String),
     #[error("Failed to create placeholder texture: {0}")]
     PlaceHolderCreateError(String),
+    #[error("Failed to load sound sample: {0}")]
+    SoundLoadError(String),
+    #[error("Failed to play audio sample: {0}")]
+    AudioPlayError(String),
 }
