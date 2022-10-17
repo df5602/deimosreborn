@@ -11,7 +11,7 @@ use crate::{
     component::{position::PositionComponent, sprite::SpriteComponent},
     resource::timing::Timing,
     sprite::SpriteManager,
-    SCREEN_SCALE, // FIXME: Proper handling of window size?
+    WINDOW_SCALE, // FIXME: Proper handling of window size?
 };
 
 /// Render layer
@@ -66,10 +66,10 @@ where
                 /* FIXME: returning an option here might not be the best idea, since 'None' in this context means "copy the whole source texture" */
                 sprite_ref.get_rect_of_frame(sprite.current_frame_idx),
                 sdl2::rect::Rect::new(
-                    x.round() as i32 - (sprite_ref.frame_width() as u32 / 2 * SCREEN_SCALE) as i32,
-                    y.round() as i32 - (sprite_ref.frame_height() as u32 / 2 * SCREEN_SCALE) as i32,
-                    sprite_ref.frame_width() as u32 * SCREEN_SCALE,
-                    sprite_ref.frame_height() as u32 * SCREEN_SCALE,
+                    ((x - sprite_ref.frame_width() as f32 / 2.0) * WINDOW_SCALE as f32).round() as i32,
+                    ((y - sprite_ref.frame_height() as f32 / 2.0) * WINDOW_SCALE as f32).round() as i32,
+                    sprite_ref.frame_width() as u32 * WINDOW_SCALE,
+                    sprite_ref.frame_height() as u32 * WINDOW_SCALE,
                 ),
             )
             .unwrap(); // FIXME

@@ -38,9 +38,15 @@ use std::sync::mpsc::channel;
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
-const SCREEN_SCALE: u32 = 2;
-const SCREEN_WIDTH: u32 = 640 * SCREEN_SCALE;
-const SCREEN_HEIGHT: u32 = 480 * SCREEN_SCALE;
+/// Game coordinate system: sprite dimensions and physics are using these
+const GAME_WIDTH: u32 = 640;
+const GAME_HEIGHT: u32 = 480;
+
+/// Window coordinate system: scaling to actual window dimensions happening at render step
+const WINDOW_SCALE: u32 = 2;
+const WINDOW_WIDTH: u32 = GAME_WIDTH * WINDOW_SCALE;
+const WINDOW_HEIGHT: u32 = GAME_HEIGHT * WINDOW_SCALE;
+
 const FRAME_RATE_GAME: u32 = 60;
 const FRAME_RATE_RENDER: u32 = 60;
 
@@ -82,13 +88,13 @@ fn main() -> Result<()> {
         .context("Failed to open audio driver")?;
 
     let window = video_subsystem
-        .window("Deimos Reborn", SCREEN_WIDTH, SCREEN_HEIGHT)
+        .window("Deimos Reborn", WINDOW_WIDTH, WINDOW_HEIGHT)
         .position_centered()
         .build()
         .with_context(|| {
             format!(
                 "Could not create main window with dimensions {}x{}",
-                SCREEN_WIDTH, SCREEN_HEIGHT
+                WINDOW_WIDTH, WINDOW_HEIGHT
             )
         })?;
 
@@ -164,8 +170,8 @@ fn main() -> Result<()> {
         &mut world,
         player_sprite_id,
         sprite_manager.get_description(player_sprite_id),
-        (SCREEN_WIDTH / 2) as f32,
-        (SCREEN_HEIGHT - 200) as f32,
+        (GAME_WIDTH / 2) as f32,
+        (GAME_HEIGHT - 100) as f32,
         bullet_sprite_id,
         bullet_sound_id,
     );

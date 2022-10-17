@@ -11,13 +11,13 @@ use crate::{
     /* FIXME: do proper delta time implementation in physics systems */
     FRAME_RATE_GAME,
     /* FIXME: should not be used via constant (maybe have screen width / height as resource and a bounding box component?) */
-    SCREEN_HEIGHT, SCREEN_SCALE, SCREEN_WIDTH,
+    GAME_HEIGHT, GAME_WIDTH,
 };
 
-const VX_MAX: f32 = 0.000314 * SCREEN_WIDTH as f32 * (1000.0 / (FRAME_RATE_GAME as f32));
-const VY_MAX: f32 = 0.000487 * SCREEN_HEIGHT as f32 * (1000.0 / (FRAME_RATE_GAME as f32));
-const AX_MAX: f32 = 6.286_875e-5 * SCREEN_WIDTH as f32 * (1000.0 / (FRAME_RATE_GAME as f32));
-const AY_MAX: f32 = 9.735e-5 * SCREEN_HEIGHT as f32 * (1000.0 / (FRAME_RATE_GAME as f32));
+const VX_MAX: f32 = 0.000314 * GAME_WIDTH as f32 * (1000.0 / (FRAME_RATE_GAME as f32));
+const VY_MAX: f32 = 0.000487 * GAME_HEIGHT as f32 * (1000.0 / (FRAME_RATE_GAME as f32));
+const AX_MAX: f32 = 6.286_875e-5 * GAME_WIDTH as f32 * (1000.0 / (FRAME_RATE_GAME as f32));
+const AY_MAX: f32 = 9.735e-5 * GAME_HEIGHT as f32 * (1000.0 / (FRAME_RATE_GAME as f32));
 
 pub struct Player;
 
@@ -44,16 +44,10 @@ impl Player {
                 ay_max: AY_MAX,
                 vx_max: VX_MAX,
                 vy_max: VY_MAX,
-                x_min: (50 + sprite_desc.frame_dimensions.0 / 2 * SCREEN_SCALE as usize) as f32,
-                x_max: (SCREEN_WIDTH
-                    - 50
-                    - sprite_desc.frame_dimensions.0 as u32 / 2 * SCREEN_SCALE)
-                    as f32,
-                y_min: (50 + sprite_desc.frame_dimensions.1 / 2 * SCREEN_SCALE as usize) as f32,
-                y_max: (SCREEN_HEIGHT
-                    - 50
-                    - sprite_desc.frame_dimensions.1 as u32 / 2 * SCREEN_SCALE)
-                    as f32,
+                x_min: (25 + sprite_desc.frame_dimensions.0 / 2 as usize) as f32,
+                x_max: (GAME_WIDTH - 25 - sprite_desc.frame_dimensions.0 as u32 / 2) as f32,
+                y_min: (25 + sprite_desc.frame_dimensions.1 / 2 as usize) as f32,
+                y_max: (GAME_HEIGHT - 25 - sprite_desc.frame_dimensions.1 as u32 / 2) as f32,
             })
             .with(PlayerAnimationComponent::default())
             .with(PlayerWeaponComponent::new(

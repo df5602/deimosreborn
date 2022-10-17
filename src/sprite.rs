@@ -145,6 +145,7 @@ impl<'t> Sprite<'t> {
             .without_lock_mut()
             .expect("surface doesn't require locking");
 
+        // FIXME: the following has endianness problems, should query byte layout and change accordingly
         for (i, pixel) in pixels_alpha.chunks(4).enumerate() {
             let grayscale = ((pixel[0] as u32 + pixel[1] as u32 + pixel[2] as u32) / 3) as u8;
             pixels_target[i * 4] = 255 - grayscale;

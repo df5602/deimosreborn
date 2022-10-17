@@ -10,11 +10,11 @@ use crate::{
     },
     resource::{player_input::PlayerInput, sound::SoundSystem},
     system::render::Layer,
-    FRAME_RATE_GAME, SCREEN_HEIGHT, SCREEN_WIDTH,
+    FRAME_RATE_GAME, GAME_HEIGHT, GAME_WIDTH,
 };
 
-const VY: f32 = -0.000625 * SCREEN_HEIGHT as f32 * (1000.0 / (FRAME_RATE_GAME as f32));
-const POS_OFFSET: f32 = 0.007292 * SCREEN_WIDTH as f32;
+const VY: f32 = -0.000625 * GAME_HEIGHT as f32 * (1000.0 / (FRAME_RATE_GAME as f32));
+const POS_OFFSET: f32 = 0.007292 * GAME_WIDTH as f32;
 
 pub struct PlayerWeaponSystem;
 
@@ -32,7 +32,6 @@ impl<'sys> System<'sys> for PlayerWeaponSystem {
         let (player_input, sound, entities, lazy_update, mut weapon, position) = data;
 
         // TODO: glow
-        // TODO: SFX
         // FIXME: this probably needs to be organised better
 
         for (weapon, position) in (&mut weapon, &position).join() {
@@ -56,10 +55,10 @@ impl<'sys> System<'sys> for PlayerWeaponSystem {
                     .with(BulletPhysicsComponent {
                         vx: 0.0,
                         vy: VY,
-                        x_min: -32.0, // FIXME: need a better solution for bounding boxes, need to know sprite size here?
-                        x_max: (SCREEN_WIDTH + 32) as f32,
-                        y_min: -32.0,
-                        y_max: (SCREEN_HEIGHT + 32) as f32,
+                        x_min: -16.0, // FIXME: need a better solution for bounding boxes, need to know sprite size here?
+                        x_max: (GAME_WIDTH + 16) as f32,
+                        y_min: -16.0,
+                        y_max: (GAME_HEIGHT + 16) as f32,
                     })
                     .build();
 
@@ -70,10 +69,10 @@ impl<'sys> System<'sys> for PlayerWeaponSystem {
                     .with(BulletPhysicsComponent {
                         vx: 0.0,
                         vy: VY,
-                        x_min: -32.0, // FIXME: need a better solution for bounding boxes, need to know sprite size here?
-                        x_max: (SCREEN_WIDTH + 32) as f32,
-                        y_min: -32.0,
-                        y_max: (SCREEN_HEIGHT + 32) as f32,
+                        x_min: -16.0, // FIXME: need a better solution for bounding boxes, need to know sprite size here?
+                        x_max: (GAME_WIDTH + 16) as f32,
+                        y_min: -16.0,
+                        y_max: (GAME_HEIGHT + 16) as f32,
                     })
                     .build();
 
