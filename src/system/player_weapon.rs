@@ -8,7 +8,7 @@ use crate::{
         bullet_physics::BulletPhysicsComponent, player_weapon::PlayerWeaponComponent,
         position::PositionComponent, sprite::SpriteComponent,
     },
-    resource::{player_input::PlayerInput, sound::SoundSystem},
+    resource::{player_input::PlayerInput, sound::AudioInterface},
     system::render::Layer,
     FRAME_RATE_GAME, GAME_HEIGHT, GAME_WIDTH,
 };
@@ -21,7 +21,7 @@ pub struct PlayerWeaponSystem;
 impl<'sys> System<'sys> for PlayerWeaponSystem {
     type SystemData = (
         Read<'sys, PlayerInput>,
-        ReadExpect<'sys, SoundSystem>,
+        ReadExpect<'sys, AudioInterface>,
         Entities<'sys>,
         Read<'sys, LazyUpdate>,
         WriteStorage<'sys, PlayerWeaponComponent>,
@@ -29,7 +29,7 @@ impl<'sys> System<'sys> for PlayerWeaponSystem {
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (player_input, sound, entities, lazy_update, mut weapon, position) = data;
+        let (player_input, audio, entities, lazy_update, mut weapon, position) = data;
 
         // TODO: glow
         // FIXME: this probably needs to be organised better
@@ -76,12 +76,7 @@ impl<'sys> System<'sys> for PlayerWeaponSystem {
                     })
                     .build();
 
-                sound
-                    .sender
-                    .lock()
-                    .expect("mutex is valid")
-                    .send(weapon.bullet_sound)
-                    .expect("channel is valid");
+                audio.play_sound(weapon.bullet_sound);
 
                 info!(target: "PlayerWeaponSystem", "Spawn bullets");
             }

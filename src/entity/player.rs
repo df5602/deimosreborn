@@ -44,9 +44,9 @@ impl Player {
                 ay_max: AY_MAX,
                 vx_max: VX_MAX,
                 vy_max: VY_MAX,
-                x_min: (25 + sprite_desc.frame_dimensions.0 / 2 as usize) as f32,
+                x_min: (25 + sprite_desc.frame_dimensions.0 / 2_usize) as f32,
                 x_max: (GAME_WIDTH - 25 - sprite_desc.frame_dimensions.0 as u32 / 2) as f32,
-                y_min: (25 + sprite_desc.frame_dimensions.1 / 2 as usize) as f32,
+                y_min: (25 + sprite_desc.frame_dimensions.1 / 2_usize) as f32,
                 y_max: (GAME_HEIGHT - 25 - sprite_desc.frame_dimensions.1 as u32 / 2) as f32,
             })
             .with(PlayerAnimationComponent::default())

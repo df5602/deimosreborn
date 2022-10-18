@@ -24,18 +24,17 @@ use component::{
     position::PositionComponent, sprite::SpriteComponent,
 };
 use entity::player::Player;
-use resource::{player_input::PlayerInput, sound::SoundSystem, timing::Timing};
+use resource::{player_input::PlayerInput, sound::AudioInterface, timing::Timing};
 use system::bullet_physics::BulletPhysicsSystem;
 use system::{
     player_animation::PlayerAnimationSystem, player_movement::PlayerMovementSystem,
     player_weapon::PlayerWeaponSystem, render::RenderSystem,
 };
 
-use sound::{SoundId, SoundManager};
+use sound::{SoundId, SoundLibrary};
 use sprite::{Sprite, SpriteDescription, SpriteManager};
 
 use std::sync::mpsc::channel;
-use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
 /// Game coordinate system: sprite dimensions and physics are using these
@@ -137,13 +136,13 @@ fn main() -> Result<()> {
 
     let bullet_sprite_id = sprite_manager.insert(ion_cannon_bullet_sprite);
 
-    let mut sound_manager = SoundManager::new();
+    let mut sound_library = SoundLibrary::new();
 
     let sound_ion_cannon_bullet =
         sdl2::mixer::Chunk::from_file("assets/ Data/Paks/Audio/Ion-Cannon-Bullet_icbu_.wav")
             .map_err(errors::SdlError::SoundLoadError)?;
 
-    let bullet_sound_id = sound_manager.insert(sound_ion_cannon_bullet);
+    let bullet_sound_id = sound_library.insert(sound_ion_cannon_bullet);
 
     let audio_channel = sdl2::mixer::Channel::all();
     let (audio_sender, audio_receiver) = channel::<SoundId>();
@@ -151,9 +150,7 @@ fn main() -> Result<()> {
     let mut world = World::new();
     world.insert(PlayerInput::default());
     world.insert(Timing::default());
-    world.insert(SoundSystem {
-        sender: Mutex::new(audio_sender),
-    });
+    world.insert(AudioInterface::new(audio_sender));
     world.register::<BulletPhysicsComponent>();
     world.register::<PlayerAnimationComponent>();
     world.register::<PlayerPhysicsComponent>();
@@ -256,7 +253,7 @@ fn main() -> Result<()> {
         // Sounds
         for sound in audio_receiver.try_iter() {
             audio_channel
-                .play(sound_manager.get(sound), 0)
+                .play(sound_library.get(sound), 0)
                 .map_err(errors::SdlError::AudioPlayError)?;
         }
 

@@ -3,12 +3,11 @@ use sdl2::mixer::Chunk;
 #[derive(Debug, Copy, Clone)]
 pub struct SoundId(usize);
 
-pub struct SoundManager {
+pub struct SoundLibrary {
     sounds: Vec<Chunk>,
 }
 
-// TODO: maybe "library" is a better name? (same for sprites)
-impl SoundManager {
+impl SoundLibrary {
     pub fn new() -> Self {
         Self { sounds: Vec::new() }
     }
