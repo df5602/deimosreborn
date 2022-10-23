@@ -22,6 +22,7 @@ const AY_MAX: f32 = 9.735e-5 * GAME_HEIGHT as f32 * (1000.0 / (FRAME_RATE_GAME a
 pub struct Player;
 
 impl Player {
+    #[allow(clippy::too_many_arguments)]
     pub fn create_player(
         world: &mut World,
         sprite_id: SpriteId,
@@ -29,6 +30,7 @@ impl Player {
         x: f32,
         y: f32,
         bullet_sprite_id: SpriteId,
+        bullet_dimensions: (u32, u32),
         bullet_sound_id: SoundId,
     ) {
         world
@@ -53,6 +55,7 @@ impl Player {
             .with(PlayerWeaponComponent::new(
                 FRAME_RATE_GAME / 6,
                 bullet_sprite_id,
+                bullet_dimensions,
                 bullet_sound_id,
             ))
             .build();

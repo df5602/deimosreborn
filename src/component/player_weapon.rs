@@ -6,6 +6,7 @@ pub struct PlayerWeaponComponent {
     pub cooldown_reset: u32,
     pub cooldown: u32,
     pub bullet_sprite: SpriteId,
+    pub bullet_dimensions: (u32, u32),
     pub bullet_sound: SoundId,
 }
 
@@ -14,11 +15,17 @@ impl Component for PlayerWeaponComponent {
 }
 
 impl PlayerWeaponComponent {
-    pub fn new(cooldown: u32, bullet_sprite: SpriteId, bullet_sound: SoundId) -> Self {
+    pub fn new(
+        cooldown: u32,
+        bullet_sprite: SpriteId,
+        bullet_dimensions: (u32, u32),
+        bullet_sound: SoundId,
+    ) -> Self {
         Self {
             cooldown_reset: cooldown,
             cooldown: 0,
             bullet_sprite,
+            bullet_dimensions,
             bullet_sound,
         }
     }

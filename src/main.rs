@@ -170,6 +170,7 @@ fn main() -> Result<()> {
         (GAME_WIDTH / 2) as f32,
         (GAME_HEIGHT - 100) as f32,
         bullet_sprite_id,
+        (14, 18), // FIXME: proper handling of hitboxes
         bullet_sound_id,
     );
 
