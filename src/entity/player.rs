@@ -62,7 +62,7 @@ impl Player {
             ))
             .build();
 
-        world
+        let glow_entity = world
             .create_entity()
             .with(SpriteComponent::new(glow_sprite_id, Layer::Effects).with_scale_factor(1.2))
             .with(PositionComponent::new(0.0, 0.0))
@@ -71,5 +71,12 @@ impl Player {
                 offset: (-0.0, -6.0),
             })
             .build();
+
+        // Connect glow entity to player entity
+        let mut animation = world.write_component::<PlayerAnimationComponent>();
+        let animation = animation
+            .get_mut(player_entity)
+            .expect("player entity should have an animation component");
+        animation.weapon_glow_entity = Some(glow_entity);
     }
 }

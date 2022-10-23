@@ -5,8 +5,11 @@ use specs::{
 
 use crate::{
     component::{
-        bullet_physics::BulletPhysicsComponent, player_weapon::PlayerWeaponComponent,
-        position::PositionComponent, sprite::SpriteComponent,
+        bullet_physics::BulletPhysicsComponent,
+        player_animation::{GlowAnimationState, PlayerAnimationComponent},
+        player_weapon::PlayerWeaponComponent,
+        position::PositionComponent,
+        sprite::SpriteComponent,
     },
     resource::{player_input::PlayerInput, sound::AudioInterface},
     system::render::Layer,
@@ -46,19 +49,20 @@ impl<'sys> System<'sys> for PlayerWeaponSystem {
         Read<'sys, LazyUpdate>,
         WriteStorage<'sys, PlayerWeaponComponent>,
         ReadStorage<'sys, PositionComponent>,
+        WriteStorage<'sys, PlayerAnimationComponent>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (player_input, audio, entities, lazy_update, mut weapon, position) = data;
+        let (player_input, audio, entities, lazy_update, mut weapon, position, mut animation) =
+            data;
 
-        // TODO: glow
-
-        for (weapon, position) in (&mut weapon, &position).join() {
+        for (weapon, position, animation) in (&mut weapon, &position, &mut animation).join() {
             if weapon.cooldown > 0 {
                 weapon.cooldown -= 1;
             } else if player_input.shoot_air {
                 weapon.cooldown += weapon.cooldown_reset;
 
+                // Spawn bullets
                 let mut position_bullet_left = *position;
                 let left_x = position_bullet_left.x() - POS_OFFSET;
                 position_bullet_left.reset_x(left_x);
@@ -79,6 +83,10 @@ impl<'sys> System<'sys> for PlayerWeaponSystem {
                     weapon,
                 );
 
+                // Animation
+                animation.glow_animation_state = GlowAnimationState::Fire;
+
+                // Audio
                 audio.play_sound(weapon.bullet_sound);
 
                 info!(target: "PlayerWeaponSystem", "Spawn bullets");

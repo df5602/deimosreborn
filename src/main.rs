@@ -197,7 +197,7 @@ fn main() -> Result<()> {
         .with(
             PlayerAnimationSystem,
             "player_animation",
-            &["player_movement"],
+            &["player_movement", "player_weapon"],
         )
         .with(
             PositionTrackSystem,
