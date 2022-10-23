@@ -66,10 +66,10 @@ where
                 /* FIXME: returning an option here might not be the best idea, since 'None' in this context means "copy the whole source texture" */
                 sprite_ref.get_rect_of_frame(sprite.current_frame_idx),
                 sdl2::rect::Rect::new(
-                    ((x - sprite_ref.frame_width() as f32 / 2.0) * WINDOW_SCALE as f32).round() as i32,
-                    ((y - sprite_ref.frame_height() as f32 / 2.0) * WINDOW_SCALE as f32).round() as i32,
-                    sprite_ref.frame_width() as u32 * WINDOW_SCALE,
-                    sprite_ref.frame_height() as u32 * WINDOW_SCALE,
+                    ((x - sprite_ref.frame_width() as f32 * sprite.scale_factor / 2.0) * WINDOW_SCALE as f32).round() as i32,
+                    ((y - sprite_ref.frame_height() as f32 * sprite.scale_factor / 2.0) * WINDOW_SCALE as f32).round() as i32,
+                    (sprite_ref.frame_width() as f32 * sprite.scale_factor * WINDOW_SCALE as f32).round() as u32,
+                    (sprite_ref.frame_height() as f32 * sprite.scale_factor * WINDOW_SCALE as f32).round() as u32,
                 ),
             )
             .unwrap(); // FIXME

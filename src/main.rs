@@ -21,14 +21,14 @@ use anyhow::{Context, Result};
 use component::{
     bullet_physics::BulletPhysicsComponent, player_animation::PlayerAnimationComponent,
     player_physics::PlayerPhysicsComponent, player_weapon::PlayerWeaponComponent,
-    position::PositionComponent, sprite::SpriteComponent,
+    position::PositionComponent, sprite::SpriteComponent, track_position::TrackPositionComponent,
 };
 use entity::player::Player;
 use resource::{player_input::PlayerInput, sound::AudioInterface, timing::Timing};
-use system::bullet_physics::BulletPhysicsSystem;
 use system::{
-    player_animation::PlayerAnimationSystem, player_movement::PlayerMovementSystem,
-    player_weapon::PlayerWeaponSystem, render::RenderSystem,
+    bullet_physics::BulletPhysicsSystem, player_animation::PlayerAnimationSystem,
+    player_movement::PlayerMovementSystem, player_weapon::PlayerWeaponSystem, render::RenderSystem,
+    track_position::PositionTrackSystem,
 };
 
 use sound::{SoundId, SoundLibrary};
@@ -136,6 +136,20 @@ fn main() -> Result<()> {
 
     let bullet_sprite_id = sprite_manager.insert(ion_cannon_bullet_sprite);
 
+    let ion_cannon_glow_sprite = Sprite::from_gif(
+        SpriteDescription {
+            number_of_frames: 1,
+            border_left: 66,
+            border_up: 3,
+            frame_dimensions: (70, 70),
+        },
+        "assets/ Data/Paks/Game/im08/Ion Cannon IC[ioca].gif",
+        "assets/ Data/Paks/Game/im08/Ion Cannon IA[IOCA].gif",
+        &texture_creator,
+    )?;
+
+    let glow_sprite_id = sprite_manager.insert(ion_cannon_glow_sprite);
+
     let mut sound_library = SoundLibrary::new();
 
     let sound_ion_cannon_bullet =
@@ -157,6 +171,7 @@ fn main() -> Result<()> {
     world.register::<PlayerWeaponComponent>();
     world.register::<PositionComponent>();
     world.register::<SpriteComponent>();
+    world.register::<TrackPositionComponent>();
 
     {
         let mut timing = world.write_resource::<Timing>();
@@ -172,6 +187,7 @@ fn main() -> Result<()> {
         bullet_sprite_id,
         (14, 18), // FIXME: proper handling of hitboxes
         bullet_sound_id,
+        glow_sprite_id,
     );
 
     let mut dispatcher_game = DispatcherBuilder::new()
@@ -182,6 +198,11 @@ fn main() -> Result<()> {
             PlayerAnimationSystem,
             "player_animation",
             &["player_movement"],
+        )
+        .with(
+            PositionTrackSystem,
+            "position_track",
+            &["player_movement", "bullet_physics"],
         )
         .build();
 

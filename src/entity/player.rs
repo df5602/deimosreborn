@@ -4,6 +4,7 @@ use crate::{
     component::{
         player_animation::PlayerAnimationComponent, player_physics::PlayerPhysicsComponent,
         player_weapon::PlayerWeaponComponent, position::PositionComponent, sprite::SpriteComponent,
+        track_position::TrackPositionComponent,
     },
     sound::SoundId,
     sprite::{SpriteDescription, SpriteId},
@@ -32,8 +33,9 @@ impl Player {
         bullet_sprite_id: SpriteId,
         bullet_dimensions: (u32, u32),
         bullet_sound_id: SoundId,
+        glow_sprite_id: SpriteId,
     ) {
-        world
+        let player_entity = world
             .create_entity()
             .with(SpriteComponent::new(sprite_id, Layer::AirUnits))
             .with(PositionComponent::new(x, y))
@@ -58,6 +60,16 @@ impl Player {
                 bullet_dimensions,
                 bullet_sound_id,
             ))
+            .build();
+
+        world
+            .create_entity()
+            .with(SpriteComponent::new(glow_sprite_id, Layer::Effects).with_scale_factor(1.2))
+            .with(PositionComponent::new(0.0, 0.0))
+            .with(TrackPositionComponent {
+                tracked_entity: player_entity,
+                offset: (-0.0, -6.0),
+            })
             .build();
     }
 }
